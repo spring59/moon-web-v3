@@ -1,5 +1,4 @@
-#FROM spring59/alpine-nginx:1.0
-FROM spring59/alpine-nginx:2.0
+FROM nginx:stable-alpine
 
 COPY dist/ /opt/nginx/html/
 
