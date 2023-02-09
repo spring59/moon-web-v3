@@ -25,7 +25,7 @@
           <template #prefix><svg-icon icon-class="password" class="el-input__icon input-icon" /></template>
         </el-input>
       </el-form-item>
-      <el-form-item prop="code" v-if="captchaOnOff">
+      <el-form-item prop="code" v-if="captchaEnabled">
         <el-input
           v-model="loginForm.code"
           size="large"
@@ -59,7 +59,7 @@
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2018-2022 ruoyi.vip All Rights Reserved.</span>
+      <span>Copyright © 2018-2023 ruoyi.vip All Rights Reserved.</span>
     </div>
   </div>
 </template>
@@ -68,8 +68,9 @@
 import { getCodeImg } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from "@/utils/jsencrypt";
+import useUserStore from '@/store/modules/user'
 
-const store = useStore();
+const userStore = useUserStore()
 const router = useRouter();
 const { proxy } = getCurrentInstance();
 
@@ -90,7 +91,7 @@ const loginRules = {
 const codeUrl = ref("");
 const loading = ref(false);
 // 验证码开关
-const captchaOnOff = ref(true);
+const captchaEnabled = ref(true);
 // 注册开关
 const register = ref(false);
 const redirect = ref(undefined);
@@ -99,7 +100,7 @@ function handleLogin() {
   proxy.$refs.loginRef.validate(valid => {
     if (valid) {
       loading.value = true;
-      // 勾选了需要记住密码设置在cookie中设置记住用户明和名命
+      // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 });
         Cookies.set("password", encrypt(loginForm.value.password), { expires: 30 });
@@ -111,12 +112,12 @@ function handleLogin() {
         Cookies.remove("rememberMe");
       }
       // 调用action的登录方法
-      store.dispatch("Login", loginForm.value).then(() => {
+      userStore.login(loginForm.value).then(() => {
         router.push({ path: redirect.value || "/" });
       }).catch(() => {
         loading.value = false;
         // 重新获取验证码
-        if (captchaOnOff.value) {
+        if (captchaEnabled.value) {
           getCode();
         }
       });
@@ -126,8 +127,8 @@ function handleLogin() {
 
 function getCode() {
   getCodeImg().then(res => {
-    captchaOnOff.value = res.captchaOnOff === undefined ? true : res.captchaOnOff;
-    if (captchaOnOff.value) {
+    captchaEnabled.value = res.captchaEnabled === undefined ? true : res.captchaEnabled;
+    if (captchaEnabled.value) {
       codeUrl.value = "data:image/gif;base64," + res.img;
       loginForm.value.uuid = res.uuid;
     }

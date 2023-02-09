@@ -21,6 +21,7 @@
 import Fuse from 'fuse.js'
 import { getNormalPath } from '@/utils/ruoyi'
 import { isHttp } from '@/utils/validate'
+import usePermissionStore from '@/store/modules/permission'
 
 const search = ref('');
 const options = ref([]);
@@ -28,9 +29,8 @@ const searchPool = ref([]);
 const show = ref(false);
 const fuse = ref(undefined);
 const headerSearchSelectRef = ref(null);
-const store = useStore();
 const router = useRouter();
-const routes = computed(() => store.getters.permission_routes);
+const routes = computed(() => usePermissionStore().routes);
 
 function click() {
   show.value = !show.value
@@ -65,7 +65,6 @@ function initFuse(list) {
     threshold: 0.4,
     location: 0,
     distance: 100,
-    maxPatternLength: 32,
     minMatchCharLength: 1,
     keys: [{
       name: 'title',
